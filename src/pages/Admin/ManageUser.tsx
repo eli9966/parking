@@ -1,4 +1,4 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import { addRule, queryUserList, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
@@ -66,12 +66,12 @@ const handleUpdate = async (fields: FormValueType) => {
  *
  * @param selectedRows
  */
-const handleRemove = async (selectedRows: API.RuleListItem[]) => {
+const handleRemove = async (selectedRows: API.UserListItem[]) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
   try {
     await removeRule({
-      key: selectedRows.map((row) => row.key),
+      key: selectedRows.map((row) => row.id),
     });
     hide();
     message.success('Deleted successfully and will refresh soon');
@@ -98,8 +98,8 @@ const ManageUser: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.RuleListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.RuleListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.UserListItem>();
+  const [selectedRowsState, setSelectedRows] = useState<API.UserListItem[]>([]);
 
   /**
    * @en-US International configuration
@@ -107,7 +107,7 @@ const ManageUser: React.FC = () => {
    * */
   const intl = useIntl();
 
-  const columns: ProColumns<API.RuleListItem>[] = [
+  const columns: ProColumns<API.UserListItem>[] = [
     {
       title: (
         <FormattedMessage
@@ -131,6 +131,11 @@ const ManageUser: React.FC = () => {
       },
     },
     {
+      title: <FormattedMessage id="pages.admin.manage-user.table.phone" defaultMessage="手机号" />,
+      dataIndex: 'phone',
+      valueType: 'textarea',
+    },
+    {
       title: <FormattedMessage id="pages.admin.manage-user.table.idNum" defaultMessage="身份证号" />,
       dataIndex: 'idNum',
       valueType: 'textarea',
@@ -149,20 +154,20 @@ const ManageUser: React.FC = () => {
       dataIndex: 'role',
       hideInForm: true,
       valueEnum: {
-        0: {
+        'user': {
           text: (
             <FormattedMessage
               id="pages.admin.manage-user.table.role.user"
               defaultMessage="用户"
             />
           ),
-          status: 'Default',
+          status: 'Processing',
         },
-        1: {
+        'admin': {
           text: (
             <FormattedMessage id="pages.admin.manage-user.table.role.admin" defaultMessage="管理员" />
           ),
-          status: 'Processing',
+          status: 'Success',
         },
       },
     },
@@ -219,15 +224,24 @@ const ManageUser: React.FC = () => {
     },
   ];
 
+  const fetchData = async (params: API.PageParams) => {
+    const res = await queryUserList(params);
+    return {
+      data: res.data.list,
+      success: res.success,
+      total: res.data.total,
+    };
+  };
+
   return (
     <PageContainer>
-      <ProTable<API.RuleListItem, API.PageParams>
+      <ProTable<API.UserListItem, API.PageParams>
         headerTitle={intl.formatMessage({
           id: 'pages.searchTable.title',
           defaultMessage: 'Enquiry form',
         })}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="id"
         search={{
           labelWidth: 120,
         }}
@@ -242,7 +256,7 @@ const ManageUser: React.FC = () => {
             <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
           </Button>,
         ]}
-        request={rule}
+        request={fetchData}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -263,7 +277,7 @@ const ManageUser: React.FC = () => {
                   id="pages.searchTable.totalServiceCalls"
                   defaultMessage="Total number of service calls"
                 />{' '}
-                {selectedRowsState.reduce((pre, item) => pre + item.callNo!, 0)}{' '}
+                {selectedRowsState.reduce((pre, id) => pre + item.id!, 0)}{' '}
                 <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
               </span>
             </div>
@@ -324,7 +338,7 @@ const ManageUser: React.FC = () => {
         />
         <ProFormTextArea width="md" name="desc" />
       </ModalForm>
-      <UpdateForm
+      {/* <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
           if (success) {
@@ -343,7 +357,7 @@ const ManageUser: React.FC = () => {
         }}
         updateModalOpen={updateModalOpen}
         values={currentRow || {}}
-      />
+      /> */}
 
       <Drawer
         width={600}
@@ -354,17 +368,17 @@ const ManageUser: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.name && (
-          <ProDescriptions<API.RuleListItem>
+        {currentRow?.userName && (
+          <ProDescriptions<API.UserListItem>
             column={2}
-            title={currentRow?.name}
+            title={currentRow?.userName}
             request={async () => ({
               data: currentRow || {},
             })}
             params={{
-              id: currentRow?.name,
+              id: currentRow?.userName,
             }}
-            columns={columns as ProDescriptionsItemProps<API.RuleListItem>[]}
+            columns={columns as ProDescriptionsItemProps<API.UserListItem>[]}
           />
         )}
       </Drawer>

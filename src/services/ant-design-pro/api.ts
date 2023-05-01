@@ -46,19 +46,38 @@ export async function queryOrderList(options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
-export async function queryUserList(options?: { [key: string]: any }) {
+export async function queryUserList(params: {
+  // query
+  /** 当前的页码 */
+  current?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}, options?: { [key: string]: any }) {
   return request<{
-    data: API.UserListItem[];
+    data: API.UserListTable;
+
   }>('/api/admin/queryUserList', {
     method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }
-export async function queryParkingSpace(options?: { [key: string]: any }) {
+export async function queryParkingSpace(params: {
+  // query
+  /** 当前的页码 */
+  current?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}, options?: { [key: string]: any }) {
   return request<{
-    data: API.ParkingSpace[];
+    data: API.ParkingSpaceTable;
   }>('/api/admin/queryParkingSpace', {
     method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }

@@ -29,27 +29,44 @@ declare namespace API {
     vacParkingSpace?: number;
   };
   type OrderListItem = {
-
+    id?: string;
+    orderNo?: string;
+    orderType?: string;
+    orderTime?: string;
+    orderUser?: string;
+    orderRemark?: string;
+    orderParkingSpace?: string;
+    orderParkingSpacePrice?: string;
+    orderParkingSpaceDesc?: string;
   }
   type UserListItem = {
-    userId?: string;
+    id?: string;
     userName?: string;
     phone?: string;
     address?: string;
     idNum?: string;
     lastLongin?: string;
+    Role?: string;
   }
-  type ParkingSpace = {
-    parkingSpaceId?: string;
-    parkingSpaceName?: string;
-    parkingSpaceStatus?: string;
-    parkingSpaceType?: string;
-    parkingSpacePrice?: number;
-    parkingSpaceAddress?: string;
-    parkingSpaceOwner?: string;
-    parkingSpacePhone?: string;
-    parkingSpaceDesc?: string;
-
+  type UserListTable = {
+    list?: UserListItem[];
+    total?: number;
+    success?: boolean;
+  }
+  type ParkingSpaceItem = {
+    id?: string;
+    location?: string;
+    number?: string;
+    price?: string;
+    desc?: string;
+    status?: string;
+    type?: string;
+    operateTime?: string;
+  }
+  type ParkingSpaceTable = {
+    list?: ParkingSpaceItem[];
+    total?: number;
+    success?: boolean;
   }
   type LineData = {
     Date?: string;

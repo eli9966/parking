@@ -1,173 +1,427 @@
-import React, { useState } from 'react';
-import { PageContainer } from '@ant-design/pro-components';
-import type { ProColumns } from '@ant-design/pro-components';
-import { EditableProTable, ProCard, ProFormField, ProFormRadio } from '@ant-design/pro-components';
+import { addRule, queryParkingSpace, queryUserList, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import { PlusOutlined } from '@ant-design/icons';
+import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import {
+    FooterToolbar,
+    ModalForm,
+    PageContainer,
+    ProDescriptions,
+    ProFormText,
+    ProFormTextArea,
+    ProTable,
+} from '@ant-design/pro-components';
+import { FormattedMessage, useIntl } from '@umijs/max';
+import { Button, Drawer, Input, message } from 'antd';
+import React, { useRef, useState } from 'react';
+import type { FormValueType } from './components/UpdateForm';
+import UpdateForm from './components/UpdateForm';
 
-
-
-const waitTime = (time: number = 100) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(true);
-        }, time);
-    });
+/**
+ * @en-US Add node
+ * @zh-CN 添加节点
+ * @param fields
+ */
+const handleAdd = async (fields: API.RuleListItem) => {
+    const hide = message.loading('正在添加');
+    try {
+        await addRule({ ...fields });
+        hide();
+        message.success('Added successfully');
+        return true;
+    } catch (error) {
+        hide();
+        message.error('Adding failed, please try again!');
+        return false;
+    }
 };
 
-type DataSourceType = {
-    id: React.Key;
-    title?: string;
-    readonly?: string;
-    decs?: string;
-    state?: string;
-    created_at?: string;
-    update_at?: string;
-    children?: DataSourceType[];
+/**
+ * @en-US Update node
+ * @zh-CN 更新节点
+ *
+ * @param fields
+ */
+const handleUpdate = async (fields: FormValueType) => {
+    const hide = message.loading('Configuring');
+    try {
+        await updateRule({
+            name: fields.name,
+            desc: fields.desc,
+            key: fields.key,
+        });
+        hide();
+
+        message.success('Configuration is successful');
+        return true;
+    } catch (error) {
+        hide();
+        message.error('Configuration failed, please try again!');
+        return false;
+    }
 };
-const defaultData: DataSourceType[] = [
-    {
-        id: 624748504,
-        title: '活动名称一',
-        readonly: '活动名称一',
-        decs: '这个活动真好玩',
-        state: 'open',
-        created_at: '1590486176000',
-        update_at: '1590486176000',
-    },
-    {
-        id: 624691229,
-        title: '活动名称二',
-        readonly: '活动名称二',
-        decs: '这个活动真好玩',
-        state: 'closed',
-        created_at: '1590481162000',
-        update_at: '1590481162000',
-    },
-];
 
-const ManagerParking: React.FC = () => {
-    const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
-    const [dataSource, setDataSource] = useState<readonly DataSourceType[]>([]);
+/**
+ *  Delete node
+ * @zh-CN 删除节点
+ *
+ * @param selectedRows
+ */
+const handleRemove = async (selectedRows: API.ParkingSpaceItem[]) => {
+    const hide = message.loading('正在删除');
+    if (!selectedRows) return true;
+    try {
+        await removeRule({
+            key: selectedRows.map((row) => row.id),
+        });
+        hide();
+        message.success('Deleted successfully and will refresh soon');
+        return true;
+    } catch (error) {
+        hide();
+        message.error('Delete failed, please try again');
+        return false;
+    }
+};
 
-    const columns: ProColumns<DataSourceType>[] = [
+const ManageParking: React.FC = () => {
+    /**
+     * @en-US Pop-up window of new window
+     * @zh-CN 新建窗口的弹窗
+     *  */
+    const [createModalOpen, handleModalOpen] = useState<boolean>(false);
+    /**
+     * @en-US The pop-up window of the distribution update window
+     * @zh-CN 分布更新窗口的弹窗
+     * */
+    const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
+
+    const [showDetail, setShowDetail] = useState<boolean>(false);
+
+    const actionRef = useRef<ActionType>();
+    const [currentRow, setCurrentRow] = useState<API.UserListItem>();
+    const [selectedRowsState, setSelectedRows] = useState<API.ParkingSpaceItem[]>([]);
+
+    /**
+     * @en-US International configuration
+     * @zh-CN 国际化配置
+     * */
+    const intl = useIntl();
+    const [pageInfo, setPageInfo] = useState({ current: 1, pageSize: 20, total: 110 });
+
+    const columns: ProColumns<API.ParkingSpaceItem>[] = [
         {
-            title: '活动名称',
-            dataIndex: 'title',
-            tooltip: '只读，使用form.getFieldValue获取不到值',
-            formItemProps: (form, { rowIndex }) => {
-                return {
-                    rules: rowIndex > 1 ? [{ required: true, message: '此项为必填项' }] : [],
-                };
+            title: (
+                <FormattedMessage
+                    id="pages.admin.manage-parking.table.parkingSpaceLocation"
+                    defaultMessage="localtion"
+                />
+            ),
+            dataIndex: 'location',
+            tip: 'The rule name is the unique key',
+            render: (dom, entity) => {
+                return (
+                    <a
+                        onClick={() => {
+                            setCurrentRow(entity);
+                            setShowDetail(true);
+                        }}
+                    >
+                        {dom}
+                    </a>
+                );
             },
-            // 第一行不允许编辑
-            // editable: (text, record, index) => {
-            //     return index !== 0;
-            // },
-            width: '15%',
         },
         {
-            title: '活动名称二',
-            dataIndex: 'readonly',
-            tooltip: '只读，使用form.getFieldValue可以获取到值',
-            width: '15%',
+            title: <FormattedMessage
+                id="pages.admin.manage-parking.table.parkingSpaceNumber"
+                defaultMessage="编号"
+            />,
+            dataIndex: 'number',
+            valueType: 'textarea',
         },
         {
-            title: '状态',
-            key: 'state',
-            dataIndex: 'state',
-            valueType: 'select',
+            title: <FormattedMessage id="pages.admin.manage-parking.table.parkingSpacePrice" defaultMessage="身份证号" />,
+            dataIndex: 'price',
+            valueType: 'textarea',
+            sorter: true,
+            hideInForm: true,
+            renderText: (val: string) =>
+                `${val}${intl.formatMessage({
+                    id: 'pages.admin.manage-parking.table.parkingSpacePriceUnit',
+                    defaultMessage: '元/小时 ',
+                })}`,
+        },
+        {
+            title: (
+                <FormattedMessage
+                    id="pages.admin.manage-parking.table.parkingSpaceDescription"
+                    defaultMessage="描述"
+                />
+            ),
+            search: false,
+            dataIndex: 'desc',
+        },
+        {
+            title: <FormattedMessage id="pages.admin.manage-parking.table.parkingSpaceStatus" defaultMessage="状态" />,
+            dataIndex: 'status',
+            hideInForm: true,
             valueEnum: {
-                all: { text: '全部', status: 'Default' },
-                open: {
-                    text: '未解决',
+                0: {
+                    text: (
+                        <FormattedMessage
+                            id="pages.admin.manage-parking.table.parkingSpaceStatus.available"
+                            defaultMessage="可用"
+                        />
+                    ),
+                    status: 'Processing',
+                },
+                1: {
+                    text: (
+                        <FormattedMessage
+                            id="pages.admin.manage-parking.table.parkingSpaceStatus.unavailable"
+                            defaultMessage="不可用"
+                        />
+                    ),
+                    status: 'Default',
+                },
+                2: {
+                    text: (
+                        <FormattedMessage
+                            id="pages.admin.manage-parking.table.parkingSpaceStatus.reserved"
+                            defaultMessage="已预约"
+                        />
+                    ),
                     status: 'Error',
                 },
-                closed: {
-                    text: '已解决',
+                3: {
+                    text: (
+                        <FormattedMessage
+                            id="pages.admin.manage-parking.table.parkingSpaceStatus.occupied"
+                            defaultMessage="已占用"
+                        />
+                    ),
                     status: 'Success',
+                }
+            },
+        },
+        {
+            title: <FormattedMessage id="pages.admin.manage-parking.table.parkingSpaceType" defaultMessage="状态" />,
+            dataIndex: 'type',
+            hideInForm: true,
+            valueEnum: {
+                0: {
+                    text: (
+                        <FormattedMessage
+                            id="pages.admin.manage-parking.table.parkingSpaceType.temporary"
+                            defaultMessage="临时"
+                        />
+                    ),
+                    status: 'Processing',
                 },
+                1: {
+                    text: (
+                        <FormattedMessage
+                            id="pages.admin.manage-parking.table.parkingSpaceType.forever"
+                            defaultMessage="长期"
+                        />
+                    ),
+                    status: 'Default',
+                }
             },
         },
         {
-            title: '描述',
-            dataIndex: 'decs',
-            fieldProps: (form, { rowKey, rowIndex }) => {
-                if (form.getFieldValue([rowKey || '', 'title']) === '不好玩') {
-                    return {
-                        disabled: true,
-                    };
-                }
-                if (rowIndex > 9) {
-                    return {
-                        disabled: true,
-                    };
-                }
-                return {};
-            },
+            title: (
+                <FormattedMessage
+                    id="pages.admin.manage-parking.table.parkingSpaceLastOperated"
+                    defaultMessage="最后操作时间"
+                />
+            ),
+            sorter: true,
+            dataIndex: 'operateTime',
+            valueType: 'dateTime',
         },
         {
-            title: '活动时间',
-            dataIndex: 'created_at',
-            valueType: 'date',
-        },
-        {
-            title: '操作',
+            title: <FormattedMessage id="pages.admin.manage-parking.table.action" defaultMessage="Operating" />,
+            dataIndex: 'option',
             valueType: 'option',
-            width: 200,
-            render: (text, record, _, action) => [
+            render: (_, record) => [
                 <a
-                    key="editable"
+                    key="config"
                     onClick={() => {
-                        action?.startEditable?.(record.id);
+                        handleUpdateModalOpen(true);
+                        setCurrentRow(record);
                     }}
                 >
-                    编辑
+                    <FormattedMessage id="pages.admin.manage-parking.table.action.edit" defaultMessage="编辑" />
                 </a>,
-                <a
-                    key="delete"
-                    onClick={() => {
-                        setDataSource(dataSource.filter((item) => item.id !== record.id));
-                    }}
-                >
-                    删除
+                <a key="subscribeAlert" href="https://procomponents.ant.design/">
+                    <FormattedMessage
+                        id="pages.admin.manage-parking.table.action.delete"
+                        defaultMessage="删除"
+                    />
                 </a>,
             ],
         },
     ];
 
+    const fetchData = async (params: API.PageParams) => {
+        const res = await queryParkingSpace(params);
+        // setPageInfo({ ...pageInfo, total: res.total });
+        return { data: res.data.list, success: res.success, total: res.data.total };
+    };
+
     return (
-        <PageContainer
-            // content={intl.formatMessage({
-            //     id: 'pages.admin.subPage.title',
-            //     defaultMessage: 'This page can only be viewed by admin',
-            // })}
-        >
-            <EditableProTable<DataSourceType>
-                rowKey="id"
-                maxLength={5}
-                scroll={{
-                    x: 960,
-                }}
-                loading={false}
-                columns={columns}
-                request={async () => ({
-                    data: defaultData,
-                    total: 3,
-                    success: true,
+        <PageContainer>
+            <ProTable<API.ParkingSpaceItem, API.PageParams>
+                headerTitle={intl.formatMessage({
+                    id: 'pages.searchTable.title',
+                    defaultMessage: 'Enquiry form',
                 })}
-                value={dataSource}
-                onChange={setDataSource}
-                editable={{
-                    type: 'multiple',
-                    editableKeys,
-                    onSave: async (rowKey, data, row) => {
-                        console.log(rowKey, data, row);
-                        await waitTime(2000);
+                actionRef={actionRef}
+                rowKey="id"
+                search={{
+                    labelWidth: 120,
+                }}
+                // pagination={{ ...pageInfo }}
+                toolBarRender={() => [
+                    <Button
+                        type="primary"
+                        key="primary"
+                        onClick={() => {
+                            handleModalOpen(true);
+                        }}
+                    >
+                        <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+                    </Button>,
+                ]}
+                request={fetchData}
+                columns={columns}
+                rowSelection={{
+                    onChange: (_, selectedRows) => {
+                        setSelectedRows(selectedRows);
                     },
-                    onChange: setEditableRowKeys,
                 }}
             />
+            {selectedRowsState?.length > 0 && (
+                <FooterToolbar
+                    extra={
+                        <div>
+                            <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
+                            <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
+                            <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
+                            &nbsp;&nbsp;
+                            <span>
+                                <FormattedMessage
+                                    id="pages.searchTable.totalServiceCalls"
+                                    defaultMessage="Total number of service calls"
+                                />{' '}
+                                {selectedRowsState.reduce((pre, id) => pre + item.id!, 0)}{' '}
+                                <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
+                            </span>
+                        </div>
+                    }
+                >
+                    <Button
+                        onClick={async () => {
+                            await handleRemove(selectedRowsState);
+                            setSelectedRows([]);
+                            actionRef.current?.reloadAndRest?.();
+                        }}
+                    >
+                        <FormattedMessage
+                            id="pages.searchTable.batchDeletion"
+                            defaultMessage="Batch deletion"
+                        />
+                    </Button>
+                    <Button type="primary">
+                        <FormattedMessage
+                            id="pages.searchTable.batchApproval"
+                            defaultMessage="Batch approval"
+                        />
+                    </Button>
+                </FooterToolbar>
+            )}
+            <ModalForm
+                title={intl.formatMessage({
+                    id: 'pages.searchTable.createForm.newRule',
+                    defaultMessage: 'New rule',
+                })}
+                width="400px"
+                open={createModalOpen}
+                onOpenChange={handleModalOpen}
+                onFinish={async (value) => {
+                    const success = await handleAdd(value as API.RuleListItem);
+                    if (success) {
+                        handleModalOpen(false);
+                        if (actionRef.current) {
+                            actionRef.current.reload();
+                        }
+                    }
+                }}
+            >
+                <ProFormText
+                    rules={[
+                        {
+                            required: true,
+                            message: (
+                                <FormattedMessage
+                                    id="pages.searchTable.ruleName"
+                                    defaultMessage="Rule name is required"
+                                />
+                            ),
+                        },
+                    ]}
+                    width="md"
+                    name="name"
+                />
+                <ProFormTextArea width="md" name="desc" />
+            </ModalForm>
+            {/* <UpdateForm
+        onSubmit={async (value) => {
+          const success = await handleUpdate(value);
+          if (success) {
+            handleUpdateModalOpen(false);
+            setCurrentRow(undefined);
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
+        }}
+        onCancel={() => {
+          handleUpdateModalOpen(false);
+          if (!showDetail) {
+            setCurrentRow(undefined);
+          }
+        }}
+        updateModalOpen={updateModalOpen}
+        values={currentRow || {}}
+      /> */}
+
+            <Drawer
+                width={600}
+                open={showDetail}
+                onClose={() => {
+                    setCurrentRow(undefined);
+                    setShowDetail(false);
+                }}
+                closable={false}
+            >
+                {currentRow?.userName && (
+                    <ProDescriptions<API.UserListItem>
+                        column={2}
+                        title={currentRow?.userName}
+                        request={async () => ({
+                            data: currentRow || {},
+                        })}
+                        params={{
+                            id: currentRow?.userName,
+                        }}
+                        columns={columns as ProDescriptionsItemProps<API.UserListItem>[]}
+                    />
+                )}
+            </Drawer>
         </PageContainer>
     );
 };
 
-export default ManagerParking;
+export default ManageParking;
