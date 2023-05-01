@@ -55,4 +55,33 @@ export default defineMock({
             "success": true
         })
     },
+    "/api/admin/queryOrderList": (req: Request, res: Response) => {
+        res.status(200).json({
+            "errorMessage": "success",
+            "data": [{
+                "id": mockjs.Random.integer(0, 1000),
+                "orderNo": mockjs.Random.integer(0, 1000),
+                "orderType": mockjs.Random.integer(0, 1000),
+                "orderStatus": mockjs.Random.integer(0, 1000),
+                "orderTime": mockjs.Random.integer(0, 1000),
+                "orderAmount": mockjs.Random.integer(0, 1000),
+                "orderUser": mockjs.Random.integer(0, 1000),
+                "orderPhone": mockjs.Random.integer(0, 1000),
+                "orderAddress": mockjs.Random.integer(0, 1000),
+                "orderRemark": mockjs.Random.integer(0, 1000),
+                "orderParkingSpace": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceNo": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceAddress": mockjs.Random.integer(0, 1000),
+                "orderParkingSpacePrice": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceStatus": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceRemark": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceType": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceOwner": mockjs.Random.integer(0, 1000),
+                "orderParkingSpacePhone": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceDesc": mockjs.Random.integer(0, 1000),
+                "orderParkingSpaceImg": mockjs.Random.integer(0, 1000),
+            }],
+            "success": true
+        })
+    }
 })

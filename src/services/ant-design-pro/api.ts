@@ -22,7 +22,7 @@ export async function queryPanalData(options?: { [key: string]: any }) {
 }
 export async function queryLineData(options?: { [key: string]: any }) {
   return request<{
-    data: API.LineData;
+    data: API.LineData[];
   }>('/api/admin/queryLineData', {
     method: 'GET',
     ...(options || {}),
@@ -30,8 +30,34 @@ export async function queryLineData(options?: { [key: string]: any }) {
 }
 export async function queryPieData(options?: { [key: string]: any }) {
   return request<{
-    data: API.PieData;
+    data: API.PieData[];
   }>('/api/admin/queryPieData', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+
+export async function queryOrderList(options?: { [key: string]: any }) {
+  return request<{
+    data: API.OrderListItem[];
+  }>('/api/admin/queryOrderList', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+export async function queryUserList(options?: { [key: string]: any }) {
+  return request<{
+    data: API.UserListItem[];
+  }>('/api/admin/queryUserList', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+export async function queryParkingSpace(options?: { [key: string]: any }) {
+  return request<{
+    data: API.ParkingSpace[];
+  }>('/api/admin/queryParkingSpace', {
     method: 'GET',
     ...(options || {}),
   });
