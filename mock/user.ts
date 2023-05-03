@@ -1,4 +1,7 @@
 import { Request, Response } from 'express';
+import mockjs from 'mockjs';
+
+const Mock = require('mockjs');
 
 const waitTime = (time: number = 100) => {
   return new Promise((resolve) => {
@@ -97,26 +100,37 @@ export default {
     });
   },
   // GET POST 可省略
-  'GET /api/users': [
-    {
-      key: '1',
-      name: 'John Brown',
-      age: 32,
-      address: 'New York No. 1 Lake Park',
-    },
-    {
-      key: '2',
-      name: 'Jim Green',
-      age: 42,
-      address: 'London No. 1 Lake Park',
-    },
-    {
-      key: '3',
-      name: 'Joe Black',
-      age: 32,
-      address: 'Sidney No. 1 Lake Park',
-    },
-  ],
+  'GET /api/users': (req: Request, res: Response) => {
+    const user = Mock.mock({
+      'list|20': [{
+        "id|+1": 1,
+        "userName": '@cname',
+        'phone': /^1[3456789]\d{9}$/,
+        "address": '@county(true)@natural(1,100)号@natural(1,20)栋@natural(101,200)室',
+        "idNum": () => {
+          return Mock.Random.id(18);
+        },
+        "lastLogin": '@datetime',
+        "role|1": ["admin", "user"],
+      }],
+      'total': '@integer(20, 200)'
+    })
+
+
+    res.status(200).json({
+      "errorMessage": "success",
+      "data": user,
+      "success": true
+    })
+  },
+  'POST /api/users': (req: Request, res: Response) => {
+    console.log(req.body);
+    // console.log(req)`
+    res.send({ status: 'ok', message: '添加成功！' })
+  },
+  'DELETE /api/users/:id': (req: Request, res: Response) => {
+    res.send({ status: 'ok', message: '删除成功！' });
+  },
   'POST /api/login/account': async (req: Request, res: Response) => {
     const { password, username, type } = req.body;
     await waitTime(2000);

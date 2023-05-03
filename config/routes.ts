@@ -26,7 +26,7 @@ export default [
     path: '/welcome',
     name: 'welcome',
     icon: 'smile',
-    access: 'canAdmin',
+    // access: 'canAdmin',
     component: './Welcome',
   },
   {
@@ -44,14 +44,23 @@ export default [
         path: "/admin/manager-parking",
         name: "manage-parking",
         component: "./Admin/ManageParking"
+      },
+      {
+        path: "/admin/manage-order",
+        name: "manage-order",
+        component: "./Admin/ManageOrder"
+      },
+      {
+        path: "/admin/manage-suggest",
+        name: "manage-suggest",
+        component: "./Admin/ManageSuggest"
+      },
+      {
+        path: "/admin/manage-notice",
+        name: "manage-notice",
+        component: "./Admin/ManageNotice"
       }
     ],
-  },
-  {
-    name: 'list.table-list',
-    icon: 'table',
-    path: '/list',
-    component: './TableList',
   },
   {
     path: '/',

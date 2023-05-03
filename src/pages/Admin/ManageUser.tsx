@@ -1,6 +1,6 @@
-import { addRule, queryUserList, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import { addRule, addUser, deleteUser, queryUserList, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
 import {
   FooterToolbar,
   ModalForm,
@@ -12,7 +12,7 @@ import {
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, Input, message } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 
@@ -21,10 +21,10 @@ import UpdateForm from './components/UpdateForm';
  * @zh-CN 添加节点
  * @param fields
  */
-const handleAdd = async (fields: API.RuleListItem) => {
+const handleAdd = async (fields: API.UserListItem) => {
   const hide = message.loading('正在添加');
   try {
-    await addRule({ ...fields });
+    await addUser({ ...fields });
     hide();
     message.success('Added successfully');
     return true;
@@ -66,13 +66,11 @@ const handleUpdate = async (fields: FormValueType) => {
  *
  * @param selectedRows
  */
-const handleRemove = async (selectedRows: API.UserListItem[]) => {
+const handleRemove = async (selectedRow: API.UserListItem) => {
   const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
+  if (!selectedRow) return true;
   try {
-    await removeRule({
-      key: selectedRows.map((row) => row.id),
-    });
+    await deleteUser(selectedRow?.id ?? "")
     hide();
     message.success('Deleted successfully and will refresh soon');
     return true;
@@ -93,14 +91,11 @@ const ManageUser: React.FC = () => {
    * @en-US The pop-up window of the distribution update window
    * @zh-CN 分布更新窗口的弹窗
    * */
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.UserListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.UserListItem[]>([]);
-
   /**
    * @en-US International configuration
    * @zh-CN 国际化配置
@@ -152,7 +147,7 @@ const ManageUser: React.FC = () => {
     {
       title: <FormattedMessage id="pages.admin.manage-user.table.role" defaultMessage="权限" />,
       dataIndex: 'role',
-      hideInForm: true,
+      // hideInForm: true,
       valueEnum: {
         'user': {
           text: (
@@ -208,13 +203,23 @@ const ManageUser: React.FC = () => {
         <a
           key="config"
           onClick={() => {
-            handleUpdateModalOpen(true);
             setCurrentRow(record);
+            handleModalOpen(true)
           }}
         >
           <FormattedMessage id="pages.admin.manage-user.table.action.edit" defaultMessage="编辑" />
         </a>,
-        <a key="subscribeAlert" href="https://procomponents.ant.design/">
+        <a
+          key="subscribeAlert"
+          onClick={async () => {
+            const success = await handleRemove(record);
+            if (success) {
+              if (actionRef.current) {
+                actionRef.current.reload()
+              }
+            }
+          }}
+        >
           <FormattedMessage
             id="pages.admin.manage-user.table.action.delete"
             defaultMessage="删除"
@@ -232,7 +237,12 @@ const ManageUser: React.FC = () => {
       total: res.data.total,
     };
   };
-
+  const handleCurrentRowChange = useMemo(() => (key: keyof API.UserListItem) => (value: string) => {
+    setCurrentRow({
+      ...currentRow,
+      [key]: value,
+    });
+  }, [currentRow]);
   return (
     <PageContainer>
       <ProTable<API.UserListItem, API.PageParams>
@@ -251,6 +261,7 @@ const ManageUser: React.FC = () => {
             key="primary"
             onClick={() => {
               handleModalOpen(true);
+              setCurrentRow(undefined);
             }}
           >
             <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
@@ -258,61 +269,18 @@ const ManageUser: React.FC = () => {
         ]}
         request={fetchData}
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
-              &nbsp;&nbsp;
-              <span>
-                <FormattedMessage
-                  id="pages.searchTable.totalServiceCalls"
-                  defaultMessage="Total number of service calls"
-                />{' '}
-                {selectedRowsState.reduce((pre, id) => pre + item.id!, 0)}{' '}
-                <FormattedMessage id="pages.searchTable.tenThousand" defaultMessage="万" />
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            <FormattedMessage
-              id="pages.searchTable.batchDeletion"
-              defaultMessage="Batch deletion"
-            />
-          </Button>
-          <Button type="primary">
-            <FormattedMessage
-              id="pages.searchTable.batchApproval"
-              defaultMessage="Batch approval"
-            />
-          </Button>
-        </FooterToolbar>
-      )}
       <ModalForm
         title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newRule',
-          defaultMessage: 'New rule',
+          id: 'pages.admin.manage-user.table.createForm.newUser',
+          defaultMessage: '新建用户',
         })}
-        width="400px"
+        width="750px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
-          const success = await handleAdd(value as API.RuleListItem);
+          console.log(value);
+          const success = await handleAdd(value as API.UserListItem);
           if (success) {
             handleModalOpen(false);
             if (actionRef.current) {
@@ -321,43 +289,44 @@ const ManageUser: React.FC = () => {
           }
         }}
       >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: (
-                <FormattedMessage
-                  id="pages.searchTable.ruleName"
-                  defaultMessage="Rule name is required"
-                />
-              ),
-            },
-          ]}
-          width="md"
-          name="name"
-        />
-        <ProFormTextArea width="md" name="desc" />
+        <ProFormGroup>
+          <ProFormText width="md" name={['currentRow', 'userName']}
+            label="用户名"
+            onChange={handleCurrentRowChange('userName')}
+            value={currentRow?.userName}
+            rules={[{ required: true, message: '请输入用户名' }]} />
+          <ProFormText.Password width="md" label="密码"
+            name={['currentRow', 'password']}
+            value={currentRow?.password}
+            onChange={handleCurrentRowChange('password')}
+            rules={[{ required: true, message: '请输入密码' }]} />
+          <ProFormText width="md" name={['currentRow', 'phone']}
+            onChange={handleCurrentRowChange('phone')}
+            value={currentRow?.phone}
+
+            label="联系方式" />
+          <ProFormText width="md" name={['currentRow', 'idNum']}
+            value={currentRow?.idNum}
+            onChange={handleCurrentRowChange('idNum')} label="身份证号" />
+          <ProFormText width="md" name={['currentRow', 'address']}
+            onChange={handleCurrentRowChange('address')}
+            value={currentRow?.address}
+            label="详细地址" />
+          <ProFormSelect
+            name={['currentRow', 'role']}
+            label="权限"
+            valueEnum={{
+              admin: '管理员',
+              user: '用户',
+            }}
+            value={currentRow?.role}
+            onChange={handleCurrentRowChange('role')}
+
+            placeholder=""
+            rules={[{ required: true, message: '请选择用户权限' }]}
+          />
+        </ProFormGroup>
       </ModalForm>
-      {/* <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalOpen(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        updateModalOpen={updateModalOpen}
-        values={currentRow || {}}
-      /> */}
 
       <Drawer
         width={600}
@@ -376,7 +345,7 @@ const ManageUser: React.FC = () => {
               data: currentRow || {},
             })}
             params={{
-              id: currentRow?.userName,
+              id: currentRow?.id,
             }}
             columns={columns as ProDescriptionsItemProps<API.UserListItem>[]}
           />

@@ -40,8 +40,9 @@ export async function queryPieData(options?: { [key: string]: any }) {
 
 export async function queryOrderList(options?: { [key: string]: any }) {
   return request<{
-    data: API.OrderListItem[];
-  }>('/api/admin/queryOrderList', {
+    [x: string]: any;
+    data: API.OrderListTable;
+  }>('/api/orders', {
     method: 'GET',
     ...(options || {}),
   });
@@ -54,13 +55,33 @@ export async function queryUserList(params: {
   pageSize?: number;
 }, options?: { [key: string]: any }) {
   return request<{
+    [success: string]: any;
     data: API.UserListTable;
 
-  }>('/api/admin/queryUserList', {
+  }>('/api/users', {
     method: 'GET',
     params: {
       ...params,
     },
+    ...(options || {}),
+  });
+}
+export async function deleteUser(id: string, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+
+  }>(`/api/users/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+export async function addUser(data: any, options?: { [key: string]: any }) {
+  return request<API.UserListItem>('/api/users', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify(data),
     ...(options || {}),
   });
 }
@@ -72,12 +93,128 @@ export async function queryParkingSpace(params: {
   pageSize?: number;
 }, options?: { [key: string]: any }) {
   return request<{
+    [success: string]: any;
     data: API.ParkingSpaceTable;
-  }>('/api/admin/queryParkingSpace', {
+  }>('/api/parkingSpace', {
     method: 'GET',
     params: {
       ...params,
     },
+    ...(options || {}),
+  });
+}
+
+export async function querySuggestions(params: {
+  // query
+  /** 当前的页码 */
+  current?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+    data: API.SuggestionTable;
+  }>('/api/suggestions', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+export async function deleteSuggestions(id: string, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+
+  }>(`/api/suggestions/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+export async function addSuggestions(data: any, options?: { [key: string]: any }) {
+  return request<API.UserListItem>('/api/suggestions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify(data),
+    ...(options || {}),
+  });
+}
+export async function updateSuggestions(id: string, data: any, options?: { [key: string]: any }) {
+  return request<API.UserListItem>(`/api/suggestions/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify(data),
+    ...(options || {}),
+  });
+}
+
+export async function queryNotices(params: {
+  // query
+  /** 当前的页码 */
+  current?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+    data: API.NoticeTable;
+  }>('/api/notices', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+export async function deleteNotices(id: string, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+
+  }>(`/api/notices/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+export async function addNotices(data: any, options?: { [key: string]: any }) {
+  return request<API.NoticeItem>('/api/notices', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify(data),
+    ...(options || {}),
+  });
+}
+export async function updateNotices(id: string, data: any, options?: { [key: string]: any }) {
+  return request<API.NoticeItem>(`/api/notices/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify(data),
+    ...(options || {}),
+  });
+}
+export async function deleteParkingSpace(id: string, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+
+  }>(`/api/parkingSpace/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+export async function addParkingSpace(data: any, options?: { [key: string]: any }) {
+  return request<API.UserListItem>('/api/parkingSpace', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify(data),
     ...(options || {}),
   });
 }

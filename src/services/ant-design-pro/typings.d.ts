@@ -30,23 +30,29 @@ declare namespace API {
   };
   type OrderListItem = {
     id?: string;
-    orderNo?: string;
-    orderType?: string;
-    orderTime?: string;
-    orderUser?: string;
-    orderRemark?: string;
-    orderParkingSpace?: string;
-    orderParkingSpacePrice?: string;
-    orderParkingSpaceDesc?: string;
+    type?: string;
+    location?: string;
+    number?: string;
+    price?: string;
+    startTime?: string;
+    endTime?: string;
+    status?: string;
+    totalPrice?: string;
   }
   type UserListItem = {
     id?: string;
     userName?: string;
+    password?: string;
     phone?: string;
     address?: string;
     idNum?: string;
     lastLongin?: string;
-    Role?: string;
+    role?: string;
+  }
+  type OrderListTable = {
+    list?: OrderListItem[];
+    total?: number;
+    success?: boolean;
   }
   type UserListTable = {
     list?: UserListItem[];
@@ -67,6 +73,35 @@ declare namespace API {
     list?: ParkingSpaceItem[];
     total?: number;
     success?: boolean;
+  }
+
+  type SuggestionTable = {
+    list?: SuggestItem[];
+    total?: number;
+    success?: boolean;
+  }
+  type SuggestionItem = {
+    id?: string;
+    userName?: string;
+    suggestTime?: string;
+    content?: string;
+    reply?: string;
+    replyTime?: string;
+    replyUser?: string;
+    status?: string;
+  }
+  type NoticeTable = {
+    list?: NoticeItem[];
+    total?: number;
+    success?: boolean;
+  }
+  type NoticeItem = {
+    id?: string;
+    title?: string;
+    content?: string;
+    createTime?: string;
+    userName?: string;
+    status?: string;
   }
   type LineData = {
     Date?: string;

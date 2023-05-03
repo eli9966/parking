@@ -74,53 +74,9 @@ export default defineMock({
         })
         res.status(200).json({
             "errorMessage": "success",
-            "data": orderList.data,
+            "data": orderList,
             "success": true
         })
     },
-    "/api/admin/queryUserList": (req: Request, res: Response) => {
-        const user = Mock.mock({
-            'list|20': [{
-                "id|+1": 1,
-                "userName": '@cname',
-                'phone': /^1[3456789]\d{9}$/,
-                "address": '@county(true)@natural(1,100)号@natural(1,20)栋@natural(101,200)室',
-                "idNum": () => {
-                    return Mock.Random.id(18);
-                },
-                "lastLogin": '@datetime',
-                "role|1": ["admin", "user"],
-            }],
-            'total': '@integer(20, 200)'
-        })
-
-
-        res.status(200).json({
-            "errorMessage": "success",
-            "data": user.data,
-            "success": true
-        })
-    },
-    "/api/admin/queryParkingSpace": (req: Request, res: Response) => {
-        const parkingSpace = Mock.mock({
-            'list|20': [{
-                "id|+1": 1,
-                "location": '@character("ABCDEF")区',
-                'number': '@integer(1, 10)号',
-                'price': '@integer(1, 10)',
-                'desc': '@cword(5, 10)',
-                'status|1': [0, 1, 2, 3],
-                'type|1': [0, 1],
-                'operateTime': '@datetime',
-            }],
-            "total":'@integer(20, 200)'
-        })
-        res.status(200).json({
-            "errorMessage": "success",
-            "data": parkingSpace,
-            "success": true
-        })
-    },
-
 }
 )
