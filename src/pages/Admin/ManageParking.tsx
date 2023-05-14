@@ -402,7 +402,7 @@ const ManageParking: React.FC = () => {
                         name={['currentRow', 'type']}
                         label="车位类型"
                         valueEnum={{
-                            0: '临时',
+                            0: '短期',
                             1: '长期',
                         }}
                         value={currentRow?.type}

@@ -48,6 +48,7 @@ declare namespace API {
     idNum?: string;
     lastLongin?: string;
     role?: string;
+    vehicle_number?: string;
   }
   type OrderListTable = {
     list?: OrderListItem[];

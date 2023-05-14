@@ -124,6 +124,11 @@ const ManageUser: React.FC = () => {
       },
     },
     {
+      title: <FormattedMessage id="pages.admin.manage-user.table.phondwae" defaultMessage="车牌号" />,
+      dataIndex: 'vehicle_number',
+      valueType: 'textarea',
+    },
+    {
       title: <FormattedMessage id="pages.admin.manage-user.table.phone" defaultMessage="手机号" />,
       dataIndex: 'phone',
       valueType: 'textarea',
@@ -310,6 +315,10 @@ const ManageUser: React.FC = () => {
             onChange={handleCurrentRowChange('address')}
             value={currentRow?.address}
             label="详细地址" />
+            <ProFormText width="md" name={['currentRow', 'vehicle_number']}
+            onChange={handleCurrentRowChange('vehicle_number')}
+            value={currentRow?.address}
+            label="车牌号" />
           <ProFormSelect
             name={['currentRow', 'role']}
             label="权限"
@@ -319,7 +328,6 @@ const ManageUser: React.FC = () => {
             }}
             value={currentRow?.role}
             onChange={handleCurrentRowChange('role')}
-
             placeholder=""
             rules={[{ required: true, message: '请选择用户权限' }]}
           />
