@@ -1,19 +1,14 @@
 
-import { addRule, deleteParkingSpace, queryOrderList, queryParkingSpace, querySuggestions, queryUserList, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
+import { deleteParkingSpace, querySuggestions } from '@/services/ant-design-pro/api';
 import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
 import {
-    FooterToolbar,
-    ModalForm,
     PageContainer,
-    ProDescriptions,
-    ProFormText,
-    ProFormTextArea,
     ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { message } from 'antd';
-import React, {useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { useAccess } from 'umi';
 
 const handleRemove = async (selectedRow: API.ParkingSpaceItem) => {
     const hide = message.loading('正在删除');
@@ -33,6 +28,7 @@ const handleRemove = async (selectedRow: API.ParkingSpaceItem) => {
 const ManageSuggest: React.FC = () => {
 
     const [currentRow, setCurrentRow] = useState<API.ParkingSpaceItem>();
+    const access = useAccess();
 
     const actionRef = useRef<ActionType>();
 
@@ -68,12 +64,12 @@ const ManageSuggest: React.FC = () => {
             hideInForm: true,
         },
         {
-            title: (<FormattedMessage id="pages.admin.manage-suggest.table.suggestReplyUser"/>),
+            title: (<FormattedMessage id="pages.admin.manage-suggest.table.suggestReplyUser" />),
             search: false,
             dataIndex: 'replyUser',
         },
         {
-            title: (<FormattedMessage id="pages.admin.manage-suggest.table.suggestReplyTime"/>),
+            title: (<FormattedMessage id="pages.admin.manage-suggest.table.suggestReplyTime" />),
             search: false,
             dataIndex: 'replyTime',
         },
@@ -98,7 +94,7 @@ const ManageSuggest: React.FC = () => {
                     ),
                     status: 'Processing',
                 },
-                2:{
+                2: {
                     text: (
                         <FormattedMessage
                             id="pages.admin.manage-suggest.table.suggestStatus.replied"
@@ -108,38 +104,42 @@ const ManageSuggest: React.FC = () => {
                 }
             },
         },
-        {
-            title: <FormattedMessage id="pages.admin.manage-suggest.table.action" />,
-            dataIndex: 'option',
-            valueType: 'option',
-            render: (_, record) => [
-                <a
-                    key="config"
-                    onClick={() => {
-                        setCurrentRow(record);
-                    }}
-                >
-                    <FormattedMessage id="pages.admin.manage-suggest.table.action.reply"/>
-                </a>,
-                <a key="subscribeAlert"
-                    onClick={async () => {
-                        const success = await handleRemove(record)
-                        if (success) {
-                            if (actionRef.current) {
-                                actionRef.current.reload()
-                            }
-                        }
-                    }}
-                >
-                    <FormattedMessage
-                        id="pages.admin.manage-parking.table.action.delete"
-                        defaultMessage="删除"
-                    />
-                </a>,
-            ],
-        },
-    ];
 
+    ];
+    if (access?.canAdmin) {
+        columns.push(
+            {
+                title: <FormattedMessage id="pages.admin.manage-suggest.table.action" />,
+                dataIndex: 'option',
+                valueType: 'option',
+                render: (_, record) => [
+                    <a
+                        key="config"
+                        onClick={() => {
+                            setCurrentRow(record);
+                        }}
+                    >
+                        <FormattedMessage id="pages.admin.manage-suggest.table.action.reply" />
+                    </a>,
+                    <a key="subscribeAlert"
+                        onClick={async () => {
+                            const success = await handleRemove(record)
+                            if (success) {
+                                if (actionRef.current) {
+                                    actionRef.current.reload()
+                                }
+                            }
+                        }}
+                    >
+                        <FormattedMessage
+                            id="pages.admin.manage-parking.table.action.delete"
+                            defaultMessage="删除"
+                        />
+                    </a>,
+                ],
+            }
+        )
+    }
     const fetchData = async (params: API.PageParams) => {
         const res = await querySuggestions(params);
         // setPageInfo({ ...pageInfo, total: res.total });

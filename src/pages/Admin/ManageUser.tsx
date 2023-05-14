@@ -1,4 +1,4 @@
-import { addRule, addUser, deleteUser, queryUserList, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
+import {addUser, deleteUser, queryUserList } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
 import {
@@ -14,8 +14,6 @@ import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, Input, message } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-
 /**
  * @en-US Add node
  * @zh-CN 添加节点

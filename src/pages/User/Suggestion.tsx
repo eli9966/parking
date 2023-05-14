@@ -1,4 +1,4 @@
-import {deleteParkingSpace, queryParkingSpace } from '@/services/ant-design-pro/api';
+import { deleteParkingSpace, queryParkingSpace } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
 import {
@@ -13,9 +13,6 @@ import {
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, Input, message } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-import parkingSpace from 'mock/parkingSpace';
 
 /**
  * @en-US Add node
@@ -32,31 +29,6 @@ const handleAdd = async (fields: API.ParkingSpaceItem) => {
     } catch (error) {
         hide();
         message.error('Adding failed, please try again!');
-        return false;
-    }
-};
-
-/**
- * @en-US Update node
- * @zh-CN 更新节点
- *
- * @param fields
- */
-const handleUpdate = async (fields: FormValueType) => {
-    const hide = message.loading('Configuring');
-    try {
-        // await updateRule({
-        //     name: fields.name,
-        //     desc: fields.desc,
-        //     key: fields.key,
-        // });
-        hide();
-
-        message.success('Configuration is successful');
-        return true;
-    } catch (error) {
-        hide();
-        message.error('Configuration failed, please try again!');
         return false;
     }
 };
@@ -82,7 +54,7 @@ const handleRemove = async (selectedRow: API.ParkingSpaceItem) => {
     }
 };
 
-const ManageParking: React.FC = () => {
+export default () => {
     /**
      * @en-US Pop-up window of new window
      * @zh-CN 新建窗口的弹窗
@@ -395,9 +367,9 @@ const ManageParking: React.FC = () => {
                     <ProFormText width="md" name={['currentRow', 'price']}
                         onChange={handleCurrentRowChange('price')}
                         value={currentRow?.price}
-                        label="价格" 
+                        label="价格"
                         rules={[{ required: true, message: '请输入价格' }]}
-                        />
+                    />
                     <ProFormSelect
                         name={['currentRow', 'type']}
                         label="车位类型"
@@ -417,4 +389,4 @@ const ManageParking: React.FC = () => {
     );
 };
 
-export default ManageParking;
+

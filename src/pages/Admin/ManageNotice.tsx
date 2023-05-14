@@ -1,7 +1,7 @@
 
 import { addNotices } from '@/services/ant-design-pro/api';
 import { updateNotices } from '@/services/ant-design-pro/api';
-import { deleteNotices, deleteParkingSpace, queryNotices, querySuggestions } from '@/services/ant-design-pro/api';
+import { deleteNotices, queryNotices } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ModalForm, ProColumns, ProFormGroup, ProFormSelect, ProFormText, ProFormTextArea, } from '@ant-design/pro-components';
 import {

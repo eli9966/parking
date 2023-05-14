@@ -8,10 +8,10 @@ const Mock = require('mockjs');
 export default defineMock({
   "/api/notices": (req: Request, res: Response) => {
     const order = Mock.mock({
-      'list|20': [{
+      'list|5': [{
         "id|+1": 1,
         "title": '@cword(5, 10)',
-        "content": '@cword(5, 20)',
+        "content": '@cword(20, 40)',
         'createTime': '@datetime',
         'userName': '@cname',
         'status|1': [0, 1],
