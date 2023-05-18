@@ -48,14 +48,10 @@ export default () => {
                     description: {
                         render: (_, record) => (
                             <>
-                                <Tag>{record?.userName}</Tag>
-                                <Tag>{record?.createTime}</Tag>
+                                <Tag>{record?.username}</Tag>
+                                <Tag>{record?.createdAt}</Tag>
                             </>
                         ),
-                        // render: (_,record) => {
-                        //     console.log(record); // 输出 record 对象到控制台
-                        //     return null; // 返回 null，表示不显示具体的描述信息
-                        // },
                     },
                     extra: {
                         render: () => (
@@ -78,8 +74,7 @@ export default () => {
                 }}
             />
             <ModalForm<{
-                name: string;
-                company: string;
+                content: string;
             }>
                 title="我要反馈"
                 onOpenChange={handleModalOpen}
@@ -93,8 +88,10 @@ export default () => {
                 submitTimeout={2000}
                 onFinish={
                     async (value) => {
-                        console.log(value.content);
-                        message.success('提交成功');
+                        const success = await handleAdd(value);
+                        if (success) {
+                            message.success('提交成功');
+                        }
                         return true;
                     }
                 }

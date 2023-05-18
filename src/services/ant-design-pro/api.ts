@@ -38,12 +38,21 @@ export async function queryPieData(options?: { [key: string]: any }) {
 }
 
 
-export async function queryOrderList(options?: { [key: string]: any }) {
+export async function queryOrderList(params: {
+  // query
+  /** 当前的页码 */
+  current?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}, options?: { [key: string]: any }) {
   return request<{
     [x: string]: any;
     data: API.OrderListTable;
   }>('/api/orders', {
     method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }
@@ -85,21 +94,14 @@ export async function addUser(data: any, options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
-export async function queryParkingSpace(params: {
-  // query
-  /** 当前的页码 */
-  current?: number;
-  /** 页面的容量 */
-  pageSize?: number;
-}, options?: { [key: string]: any }) {
-  return request<{
-    [success: string]: any;
-    data: API.ParkingSpaceTable;
-  }>('/api/parkingSpace', {
-    method: 'GET',
-    params: {
-      ...params,
+
+export async function updateUser(id: string, data: any, options?: { [key: string]: any }) {
+  return request<API.UserListItem>(`/api/users/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
     },
+    data: JSON.stringify(data),
     ...(options || {}),
   });
 }
@@ -189,6 +191,7 @@ export async function addNotices(data: any, options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
+
 export async function updateNotices(id: string, data: any, options?: { [key: string]: any }) {
   return request<API.NoticeItem>(`/api/notices/${id}`, {
     method: 'PUT',
@@ -196,6 +199,24 @@ export async function updateNotices(id: string, data: any, options?: { [key: str
       'Content-Type': 'application/json',
     },
     data: JSON.stringify(data),
+    ...(options || {}),
+  });
+}
+export async function queryParkingSpace(params: {
+  // query
+  /** 当前的页码 */
+  current?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+    data: API.ParkingSpaceTable;
+  }>('/api/parkingSpace', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }
@@ -220,15 +241,15 @@ export async function addParkingSpace(data: any, options?: { [key: string]: any 
 }
 /** 退出登录接口 POST /api/login/outLogin */
 export async function outLogin(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/login/outLogin', {
+  return request<Record<string, any>>('/api/auth/outLogin', {
     method: 'POST',
     ...(options || {}),
   });
 }
 
-/** 登录接口 POST /api/login/account */
+/** 登录接口 POST /api/auth/login */
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-  return request<API.LoginResult>('/api/login/account', {
+  return request<API.LoginResult>('/api/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -242,6 +263,25 @@ export async function login(body: API.LoginParams, options?: { [key: string]: an
 export async function getNotices(options?: { [key: string]: any }) {
   return request<API.NoticeIconList>('/api/notices', {
     method: 'GET',
+    ...(options || {}),
+  });
+}
+
+export async function queryVehiclRecords(params: {
+  // query
+  /** 当前的页码 */
+  current?: number;
+  /** 页面的容量 */
+  pageSize?: number;
+}, options?: { [key: string]: any }) {
+  return request<{
+    [success: string]: any;
+    data: API.VehicleRecordsTable;
+  }>('/api/vehicleRecords', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }

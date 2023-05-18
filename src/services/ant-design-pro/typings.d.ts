@@ -41,12 +41,12 @@ declare namespace API {
   }
   type UserListItem = {
     id?: string;
-    userName?: string;
+    username?: string;
     password?: string;
     phone?: string;
     address?: string;
-    idNum?: string;
-    lastLongin?: string;
+    idnum?: string;
+    lastlogin?: string;
     role?: string;
     vehicle_number?: string;
   }
@@ -66,9 +66,8 @@ declare namespace API {
     number?: string;
     price?: string;
     desc?: string;
-    status?: string;
+    is_available?: boolean;
     type?: string;
-    operateTime?: string;
   }
   type ParkingSpaceTable = {
     list?: ParkingSpaceItem[];
@@ -86,7 +85,7 @@ declare namespace API {
     userName?: string;
     suggestTime?: string;
     content?: string;
-    reply?: string;
+    reply_content?: string;
     replyTime?: string;
     replyUser?: string;
     status?: string;
@@ -104,6 +103,17 @@ declare namespace API {
     userName?: string;
     status?: string;
   }
+  type VehicleRecordsItem = {
+    id?: string;
+    vehicle_number?: string;
+    enter_time?: string;
+    exit_time?: string;
+  }
+  type VehicleRecordsTable = {
+    list?: VehicleRecordsItem[];
+    total?: number;
+    success?: boolean;
+  }
   type LineData = {
     Date?: string;
     scale?: number;
@@ -117,6 +127,7 @@ declare namespace API {
     status?: string;
     type?: string;
     currentAuthority?: string;
+    success?: boolean;
   };
 
   type PageParams = {

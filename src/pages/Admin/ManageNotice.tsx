@@ -1,6 +1,5 @@
 
-import { addNotices } from '@/services/ant-design-pro/api';
-import { updateNotices } from '@/services/ant-design-pro/api';
+import { addNotices, updateNotices } from '@/services/ant-design-pro/api';
 import { deleteNotices, queryNotices } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ModalForm, ProColumns, ProFormGroup, ProFormSelect, ProFormText, ProFormTextArea, } from '@ant-design/pro-components';
@@ -10,7 +9,7 @@ import {
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, message } from 'antd';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const handleRemove = async (selectedRow: API.NoticeItem) => {
     const hide = message.loading('正在删除');
@@ -26,24 +25,20 @@ const handleRemove = async (selectedRow: API.NoticeItem) => {
         return false;
     }
 };
-// const handleUpdate = async (fields: FormValueType) => {
-//     const hide = message.loading('Configuring');
-//     try {
-//         await updateNotices({
-//             name: fields.name,
-//             desc: fields.desc,
-//             key: fields.key,
-//         });
-//         hide();
+const handleUpdate = async (fields: API.NoticeItem) => {
+    const hide = message.loading('Configuring');
+    try {
+        await updateNotices(fields.id ?? "", { ...fields });
+        hide();
 
-//         message.success('Configuration is successful');
-//         return true;
-//     } catch (error) {
-//         hide();
-//         message.error('Configuration failed, please try again!');
-//         return false;
-//     }
-// };
+        message.success('Configuration is successful');
+        return true;
+    } catch (error) {
+        hide();
+        message.error('Configuration failed, please try again!');
+        return false;
+    }
+};
 const handleAdd = async (fields: API.NoticeItem) => {
     const hide = message.loading('正在添加');
     try {
@@ -69,8 +64,7 @@ const ManageSuggest: React.FC = () => {
      * @zh-CN 国际化配置
      * */
     const intl = useIntl();
-
-    const columns: ProColumns<API.ParkingSpaceItem>[] = [
+    const columns: ProColumns<API.NoticeItem>[] = [
         {
             title: <FormattedMessage id="pages.admin.manage-notice.table.noticeTitle" />,
             dataIndex: 'title',
@@ -82,16 +76,10 @@ const ManageSuggest: React.FC = () => {
             dataIndex: 'content',
             valueType: 'textarea',
         },
-        {
-            title: <FormattedMessage
-                id="pages.admin.manage-notice.table.noticeTime"
-            />,
-            dataIndex: 'createTime',
-            valueType: 'textarea',
-        },
+
         {
             title: <FormattedMessage id="pages.admin.manage-notice.table.noticeUser" />,
-            dataIndex: 'userName',
+            dataIndex: 'username',
             valueType: 'textarea',
             hideInForm: true,
         },
@@ -119,6 +107,13 @@ const ManageSuggest: React.FC = () => {
             },
         },
         {
+            title: <FormattedMessage
+                id="pages.admin.manage-notice.table.noticeTime"
+            />,
+            dataIndex: 'createdAt',
+            valueType: 'textarea',
+        },
+        {
             title: <FormattedMessage id="pages.admin.manage-notice.table.action" />,
             dataIndex: 'option',
             valueType: 'option',
@@ -127,6 +122,7 @@ const ManageSuggest: React.FC = () => {
                     key="config"
                     onClick={() => {
                         setCurrentRow(record);
+                        handleModalOpen(true);
                     }}
                 >
                     <FormattedMessage id="pages.admin.manage-notice.table.action.edit" />
@@ -147,19 +143,27 @@ const ManageSuggest: React.FC = () => {
                     />
                 </a>,
                 <a key="stop"
-                // onClick={async () => {
-                //     const success = await handleRemove(record)
-                //     if (success) {
-                //         if (actionRef.current) {
-                //             actionRef.current.reload()
-                //         }
-                //     }
-                // }}
+                    onClick={async () => {
+                        const success = await handleUpdate(record)
+                        if (success) {
+                            if (actionRef.current) {
+                                actionRef.current.reload()
+                            }
+                        }
+                    }}
                 >
-                    <FormattedMessage
-                        id="pages.admin.manage-notice.table.action.stop"
-                        defaultMessage="停用"
-                    />
+                    {
+                        record.status == "0" ?
+                            <FormattedMessage
+                                id="pages.admin.manage-notice.table.action.stop"
+                                defaultMessage="停用"
+                            />:
+                            <FormattedMessage
+                                id="pages.admin.manage-notice.table.action.start"
+                                defaultMessage="启用"
+                            />
+                    }
+
                 </a>,
 
             ],
@@ -171,13 +175,13 @@ const ManageSuggest: React.FC = () => {
         // setPageInfo({ ...pageInfo, total: res.total });
         return { data: res.data.list, success: res.success, total: res.data.total };
     };
-    const handleCurrentRowChange = useMemo(() => (key: keyof API.NoticeItem) => (value: string) => {
-        setCurrentRow({
-            ...currentRow,
-            [key]: value,
-        });
+    useEffect(() => {
     }, [currentRow]);
-
+    useEffect(() => {
+        if (!createModalOpen) {
+            setCurrentRow({});
+        }
+    }, [createModalOpen]);
     return (
         <PageContainer>
             <ProTable<API.ParkingSpaceItem, API.PageParams>
@@ -195,6 +199,7 @@ const ManageSuggest: React.FC = () => {
                         type="primary"
                         key="primary"
                         onClick={() => {
+                            setCurrentRow({});
                             handleModalOpen(true);
                         }}
                     >
@@ -205,6 +210,8 @@ const ManageSuggest: React.FC = () => {
                 columns={columns}
             />
             <ModalForm
+                key={currentRow?.id} // 通过 key 属性重新创建 ModalForm 组件
+
                 title={intl.formatMessage({
                     id: '1231241wda',
                     defaultMessage: '新增通知',
@@ -212,40 +219,37 @@ const ManageSuggest: React.FC = () => {
                 width="380px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
+                initialValues={currentRow}
+                onValuesChange={(changedValues) => setCurrentRow((prevValues) => ({ ...prevValues, ...changedValues }))}
                 onFinish={async (value) => {
-                    console.log(value);
-                    const success = await handleAdd(value as API.ParkingSpaceItem);
+                    const success = await handleAdd(currentRow as API.NoticeItem);
                     if (success) {
                         handleModalOpen(false);
+                        setCurrentRow({});
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
                     }
                 }}
             >
-                <ProFormText width="md" name={['currentRow', 'title']}
-                    label="标题"
-                    onChange={handleCurrentRowChange('title')}
-                    value={currentRow?.title}
-                    rules={[{ required: true, message: '请输入标题' }]} />
-                <ProFormTextArea width="md" label="内容"
-                    name={['currentRow', 'content']}
-                    value={currentRow?.content}
-                    onChange={handleCurrentRowChange('content')}
-                    rules={[{ required: true, message: '请输入内容' }]} />
-                <ProFormSelect
-                    name={['currentRow', 'status']}
-                    label="是否立刻发布"
-                    valueEnum={{
-                        0: '不',
-                        1: '是',
-                    }}
-                    value={currentRow?.status}
-                    onChange={handleCurrentRowChange('status')}
+                <ProFormGroup>
+                    <ProFormText width="md" name='title'
+                        label="标题"
+                        rules={[{ required: true, message: '请输入标题' }]} />
+                    <ProFormTextArea width="md" label="内容"
+                        name='content'
+                        rules={[{ required: true, message: '请输入内容' }]} />
+                    <ProFormSelect
+                        name='status'
+                        label="是否立刻发布"
+                        valueEnum={{
+                            0: '不',
+                            1: '是',
+                        }}
+                        rules={[{ required: true, message: '请选择发布类型' }]}
+                    />
+                </ProFormGroup>
 
-                    placeholder=""
-                    rules={[{ required: true, message: '请选择发布类型' }]}
-                />
             </ModalForm>
         </PageContainer>
     );

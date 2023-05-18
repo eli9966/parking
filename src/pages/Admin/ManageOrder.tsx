@@ -1,18 +1,12 @@
 
-import { addRule, deleteParkingSpace, queryOrderList, queryParkingSpace, queryUserList, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { PlusOutlined } from '@ant-design/icons';
-import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
+import {queryOrderList } from '@/services/ant-design-pro/api';
+import { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
-    FooterToolbar,
-    ModalForm,
     PageContainer,
-    ProDescriptions,
-    ProFormText,
-    ProFormTextArea,
     ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 
 
 
@@ -27,7 +21,7 @@ const ManageOrder: React.FC = () => {
      * */
     const intl = useIntl();
 
-    const columns: ProColumns<API.ParkingSpaceItem>[] = [
+    const columns: ProColumns<API.OrderListItem>[] = [
         {
             title: <FormattedMessage id="pages.admin.manage-order.table.orderParkingSpaceType" defaultMessage="订单类型" />,
             dataIndex: 'type',
@@ -50,7 +44,7 @@ const ManageOrder: React.FC = () => {
                 id="pages.admin.manage-order.table.orderParkingSpaceOwnerLicensePlateNumber"
                 defaultMessage="车牌号"
             />,
-            dataIndex: 'number',
+            dataIndex: 'vehicle_number',
             valueType: 'textarea',
         },
         {
@@ -66,38 +60,12 @@ const ManageOrder: React.FC = () => {
             title: <FormattedMessage id="pages.admin.manage-parking.table.parkingSpacePrice" defaultMessage="身份证号" />,
             dataIndex: 'price',
             valueType: 'textarea',
-            valueEnum: {
-                3: {
-                    text: (
-                        <FormattedMessage
-                            id="3"
-                            defaultMessage="3"
-                        />
-                    ),
-                },
-                4: {
-                    text: (
-                        <FormattedMessage
-                            id="4"
-                            defaultMessage="4"
-                        />
-                    ),
-                },
-                5: {
-                    text: (
-                        <FormattedMessage
-                            id="5"
-                            defaultMessage="5"
-                        />
-                    ),
-                },
-            },
             sorter: true,
             hideInForm: true,
             renderText: (val: string) =>
                 `${val}${intl.formatMessage({
                     id: 'pages.admin.manage-parking.table.parkingSpacePriceUnit',
-                    defaultMessage: '元/小时 ',
+                    defaultMessage: '元/月 ',
                 })}`,
         },
         {
@@ -108,7 +76,7 @@ const ManageOrder: React.FC = () => {
                 />
             ),
             search: false,
-            dataIndex: 'startTime',
+            dataIndex: 'start_time',
         },
         {
             title: (
@@ -118,7 +86,7 @@ const ManageOrder: React.FC = () => {
                 />
             ),
             search: false,
-            dataIndex: 'endTime',
+            dataIndex: 'end_time',
         },
         {
             title: <FormattedMessage id="pages.admin.manage-order.table.orderStatus" defaultMessage="订单状态" />,
@@ -147,7 +115,7 @@ const ManageOrder: React.FC = () => {
         },
         {
             title: <FormattedMessage id="pages.admin.manage-order.table.orderParkingSpaceTotalPrice" defaultMessage="总价" />,
-            dataIndex: 'totalPrice',
+            dataIndex: 'total_price',
             hideInForm: true,
             sorter: true,
             renderText: (val: string) =>

@@ -1,4 +1,4 @@
-import {addUser, deleteUser, queryUserList } from '@/services/ant-design-pro/api';
+import { addUser, deleteUser, queryUserList, updateUser } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
 import {
@@ -12,8 +12,7 @@ import {
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, Input, message } from 'antd';
-import React, { useMemo, useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 /**
  * @en-US Add node
  * @zh-CN 添加节点
@@ -39,14 +38,10 @@ const handleAdd = async (fields: API.UserListItem) => {
  *
  * @param fields
  */
-const handleUpdate = async (fields: FormValueType) => {
+const handleUpdate = async (fields: API.UserListItem) => {
   const hide = message.loading('Configuring');
   try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
+    await updateUser(fields?.id ?? "", { ...fields });
     hide();
 
     message.success('Configuration is successful');
@@ -108,7 +103,7 @@ const ManageUser: React.FC = () => {
           defaultMessage="用户名"
         />
       ),
-      dataIndex: 'userName',
+      dataIndex: 'username',
       tip: 'The rule name is the unique key',
       render: (dom, entity) => {
         return (
@@ -152,7 +147,7 @@ const ManageUser: React.FC = () => {
       dataIndex: 'role',
       // hideInForm: true,
       valueEnum: {
-        'user': {
+        'USER': {
           text: (
             <FormattedMessage
               id="pages.admin.manage-user.table.role.user"
@@ -161,9 +156,15 @@ const ManageUser: React.FC = () => {
           ),
           status: 'Processing',
         },
-        'admin': {
+        'ADMIN': {
           text: (
             <FormattedMessage id="pages.admin.manage-user.table.role.admin" defaultMessage="管理员" />
+          ),
+          status: 'Success',
+        },
+        'SUPER_ADMIN': {
+          text: (
+            <FormattedMessage id="pages.admin.manage-user.table.role.admin" defaultMessage="超级管理员" />
           ),
           status: 'Success',
         },
@@ -177,7 +178,7 @@ const ManageUser: React.FC = () => {
         />
       ),
       sorter: true,
-      dataIndex: 'lastLogin',
+      dataIndex: 'lastlogin',
       valueType: 'dateTime',
       renderFormItem: (item, { defaultRender, ...rest }, form) => {
         const status = form.getFieldValue('status');
@@ -246,6 +247,9 @@ const ManageUser: React.FC = () => {
       [key]: value,
     });
   }, [currentRow]);
+  useEffect(() => {
+  }, [currentRow]);
+
   return (
     <PageContainer>
       <ProTable<API.UserListItem, API.PageParams>
@@ -264,7 +268,7 @@ const ManageUser: React.FC = () => {
             key="primary"
             onClick={() => {
               handleModalOpen(true);
-              setCurrentRow(undefined);
+              setCurrentRow({});
             }}
           >
             <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
@@ -283,7 +287,8 @@ const ManageUser: React.FC = () => {
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           console.log(value);
-          const success = await handleAdd(value as API.UserListItem);
+          const field = value.currentRow
+          const success = await handleAdd(field as API.UserListItem);
           if (success) {
             handleModalOpen(false);
             if (actionRef.current) {
@@ -293,10 +298,10 @@ const ManageUser: React.FC = () => {
         }}
       >
         <ProFormGroup>
-          <ProFormText width="md" name={['currentRow', 'userName']}
+          <ProFormText width="md" name={['currentRow', 'username']}
             label="用户名"
-            onChange={handleCurrentRowChange('userName')}
-            value={currentRow?.userName}
+            onChange={handleCurrentRowChange('username')}
+            value={currentRow?.username}
             rules={[{ required: true, message: '请输入用户名' }]} />
           <ProFormText.Password width="md" label="密码"
             name={['currentRow', 'password']}
@@ -308,14 +313,14 @@ const ManageUser: React.FC = () => {
             value={currentRow?.phone}
 
             label="联系方式" />
-          <ProFormText width="md" name={['currentRow', 'idNum']}
-            value={currentRow?.idNum}
+          <ProFormText width="md" name={['currentRow', 'idnum']}
+            value={currentRow?.idnum}
             onChange={handleCurrentRowChange('idNum')} label="身份证号" />
           <ProFormText width="md" name={['currentRow', 'address']}
             onChange={handleCurrentRowChange('address')}
             value={currentRow?.address}
             label="详细地址" />
-            <ProFormText width="md" name={['currentRow', 'vehicle_number']}
+          <ProFormText width="md" name={['currentRow', 'vehicle_number']}
             onChange={handleCurrentRowChange('vehicle_number')}
             value={currentRow?.address}
             label="车牌号" />
@@ -323,8 +328,8 @@ const ManageUser: React.FC = () => {
             name={['currentRow', 'role']}
             label="权限"
             valueEnum={{
-              admin: '管理员',
-              user: '用户',
+              ADMIN: '管理员',
+              USER: '用户',
             }}
             value={currentRow?.role}
             onChange={handleCurrentRowChange('role')}
@@ -343,10 +348,10 @@ const ManageUser: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.userName && (
+        {currentRow?.username && (
           <ProDescriptions<API.UserListItem>
             column={2}
-            title={currentRow?.userName}
+            title={currentRow?.username}
             request={async () => ({
               data: currentRow || {},
             })}

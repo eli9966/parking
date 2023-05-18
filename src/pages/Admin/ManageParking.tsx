@@ -1,21 +1,17 @@
-import {deleteParkingSpace, queryParkingSpace } from '@/services/ant-design-pro/api';
+import { addParkingSpace, deleteParkingSpace, queryParkingSpace } from '@/services/ant-design-pro/api';
 import { PlusOutlined } from '@ant-design/icons';
-import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
+import { ActionType, ProColumns, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
 import {
-    FooterToolbar,
     ModalForm,
     PageContainer,
-    ProDescriptions,
     ProFormText,
-    ProFormTextArea,
     ProTable,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Input, message } from 'antd';
-import React, { useMemo, useRef, useState } from 'react';
+import { FormattedMessage, useAccess, useIntl } from '@umijs/max';
+import { Button,message } from 'antd';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
-import parkingSpace from 'mock/parkingSpace';
+
 
 /**
  * @en-US Add node
@@ -25,7 +21,7 @@ import parkingSpace from 'mock/parkingSpace';
 const handleAdd = async (fields: API.ParkingSpaceItem) => {
     const hide = message.loading('正在添加');
     try {
-        // await addRule({ ...fields });
+        await addParkingSpace({ ...fields });
         hide();
         message.success('Added successfully');
         return true;
@@ -102,15 +98,20 @@ const ManageParking: React.FC = () => {
      * @zh-CN 国际化配置
      * */
     const intl = useIntl();
-    const [pageInfo, setPageInfo] = useState({ current: 1, pageSize: 20, total: 110 });
-
+    const access = useAccess();
     const columns: ProColumns<API.ParkingSpaceItem>[] = [
+        {
+            title: <FormattedMessage id="pages.admin.manage-parking.table.parkingSpaceId" defaultMessage="拥有人" />,
+            dataIndex: 'username',
+            valueType: 'textarea'
+        },
+
         {
             title: <FormattedMessage id="pages.admin.manage-parking.table.parkingSpaceLocation" defaultMessage="停车场位置" />,
             dataIndex: 'location',
             // hideInForm: true,
             valueEnum: {
-                'A': {
+                'A区': {
                     text: (
                         <FormattedMessage
                             id="A"
@@ -118,27 +119,27 @@ const ManageParking: React.FC = () => {
                         />
                     ),
                 },
-                'B': {
+                'B区': {
                     text: (
                         <FormattedMessage id="B" defaultMessage="B区" />
                     ),
                 },
-                'C': {
+                'C区': {
                     text: (
                         <FormattedMessage id="C" defaultMessage="C区" />
                     ),
                 },
-                'D': {
+                'D区': {
                     text: (
                         <FormattedMessage id="D" defaultMessage="D区" />
                     ),
                 },
-                'E': {
+                'E区': {
                     text: (
                         <FormattedMessage id="E" defaultMessage="E区" />
                     ),
                 },
-                'F': {
+                'F区': {
                     text: (
                         <FormattedMessage id="F" defaultMessage="F区" />
                     ),
@@ -198,21 +199,11 @@ const ManageParking: React.FC = () => {
                 })}`,
         },
         {
-            title: (
-                <FormattedMessage
-                    id="pages.admin.manage-parking.table.parkingSpaceDescription"
-                    defaultMessage="描述"
-                />
-            ),
-            search: false,
-            dataIndex: 'desc',
-        },
-        {
             title: <FormattedMessage id="pages.admin.manage-parking.table.parkingSpaceStatus" defaultMessage="状态" />,
-            dataIndex: 'status',
+            dataIndex: 'is_available',
             hideInForm: true,
             valueEnum: {
-                0: {
+                true: {
                     text: (
                         <FormattedMessage
                             id="pages.admin.manage-parking.table.parkingSpaceStatus.available"
@@ -221,7 +212,7 @@ const ManageParking: React.FC = () => {
                     ),
                     status: 'Success',
                 },
-                1: {
+                false: {
                     text: (
                         <FormattedMessage
                             id="pages.admin.manage-parking.table.parkingSpaceStatus.unavailable"
@@ -230,24 +221,6 @@ const ManageParking: React.FC = () => {
                     ),
                     status: 'Default',
                 },
-                2: {
-                    text: (
-                        <FormattedMessage
-                            id="pages.admin.manage-parking.table.parkingSpaceStatus.reserved"
-                            defaultMessage="已预约"
-                        />
-                    ),
-                    status: 'Error',
-                },
-                3: {
-                    text: (
-                        <FormattedMessage
-                            id="pages.admin.manage-parking.table.parkingSpaceStatus.occupied"
-                            defaultMessage="已占用"
-                        />
-                    ),
-                    status: 'Error',
-                }
             },
         },
         {
@@ -259,7 +232,7 @@ const ManageParking: React.FC = () => {
                     text: (
                         <FormattedMessage
                             id="pages.admin.manage-parking.table.parkingSpaceType.temporary"
-                            defaultMessage="临时"
+                            defaultMessage="短租"
                         />
                     ),
                     status: 'Processing',
@@ -271,22 +244,20 @@ const ManageParking: React.FC = () => {
                             defaultMessage="长期"
                         />
                     ),
-                    status: 'Default',
+                    status: 'Success',
                 }
             },
         },
-        {
-            title: (
-                <FormattedMessage
-                    id="pages.admin.manage-parking.table.parkingSpaceLastOperated"
-                    defaultMessage="最后操作时间"
-                />
-            ),
-            sorter: true,
-            dataIndex: 'operateTime',
-            valueType: 'dateTime',
-        },
-        {
+        
+    ];
+
+    const fetchData = async (params: API.PageParams) => {
+        const res = await queryParkingSpace(params);
+        // setPageInfo({ ...pageInfo, total: res.total });
+        return { data: res.data.list, success: res.success, total: res.data.total };
+    };
+    if (access.canAdmin) {
+        columns.push({
             title: <FormattedMessage id="pages.admin.manage-parking.table.action" defaultMessage="Operating" />,
             dataIndex: 'option',
             valueType: 'option',
@@ -295,6 +266,7 @@ const ManageParking: React.FC = () => {
                     key="config"
                     onClick={() => {
                         setCurrentRow(record);
+                        handleModalOpen(true)
                     }}
                 >
                     <FormattedMessage id="pages.admin.manage-parking.table.action.edit" defaultMessage="编辑" />
@@ -315,22 +287,14 @@ const ManageParking: React.FC = () => {
                     />
                 </a>,
             ],
-        },
-    ];
-
-    const fetchData = async (params: API.PageParams) => {
-        const res = await queryParkingSpace(params);
-        // setPageInfo({ ...pageInfo, total: res.total });
-        return { data: res.data.list, success: res.success, total: res.data.total };
-    };
-
-    const handleCurrentRowChange = useMemo(() => (key: keyof API.ParkingSpaceItem) => (value: string) => {
-        setCurrentRow({
-            ...currentRow,
-            [key]: value,
         });
-    }, [currentRow]);
+    };
+        
 
+    useEffect(() => {
+        // 执行刷新操作
+        // console.log('当前 currentRow:', currentRow);
+    }, [currentRow]);
     return (
         <PageContainer>
             <ProTable<API.ParkingSpaceItem, API.PageParams>
@@ -350,6 +314,7 @@ const ManageParking: React.FC = () => {
                         key="primary"
                         onClick={() => {
                             handleModalOpen(true);
+                            setCurrentRow({})
                         }}
                     >
                         <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
@@ -362,7 +327,10 @@ const ManageParking: React.FC = () => {
                     },
                 }}
             />
+
             <ModalForm
+                key={currentRow?.id} // 通过 key 属性重新创建 ModalForm 组件
+
                 title={intl.formatMessage({
                     id: 'pages.admin.manage-user.table.createForm.newUser',
                     defaultMessage: '新增车位',
@@ -370,9 +338,12 @@ const ManageParking: React.FC = () => {
                 width="750px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
+                initialValues={currentRow}
+                onValuesChange={(changedValues) => setCurrentRow((prevValues) => ({ ...prevValues, ...changedValues }))}
+
                 onFinish={async (value) => {
-                    console.log(value);
-                    const success = await handleAdd(value as API.ParkingSpaceItem);
+                    console.log('value:', value);
+                    const success = await handleAdd(currentRow as API.ParkingSpaceItem);
                     if (success) {
                         handleModalOpen(false);
                         if (actionRef.current) {
@@ -382,33 +353,35 @@ const ManageParking: React.FC = () => {
                 }}
             >
                 <ProFormGroup>
-                    <ProFormText width="md" name={['currentRow', 'location']}
+                    <ProFormText width="md" name='location'
                         label="停车场位置"
-                        onChange={handleCurrentRowChange('location')}
-                        value={currentRow?.location}
                         rules={[{ required: true, message: '请输入停车场位置' }]} />
-                    <ProFormText.Password width="md" label="停车场编号"
-                        name={['currentRow', 'number']}
-                        value={currentRow?.number}
-                        onChange={handleCurrentRowChange('number')}
+                    <ProFormText width="md" label="停车场编号"
+                        name='number'
                         rules={[{ required: true, message: '请输入停车场编号' }]} />
-                    <ProFormText width="md" name={['currentRow', 'price']}
-                        onChange={handleCurrentRowChange('price')}
-                        value={currentRow?.price}
-                        label="价格" 
+                    <ProFormText width="md" name='price'
+                        label="价格"
                         rules={[{ required: true, message: '请输入价格' }]}
-                        />
+                    />
+                    <ProFormText width="md" name='username'
+                        label="拥有人"
+                        rules={[{ required: true, message: '请输入拥有人' }]} />
                     <ProFormSelect
-                        name={['currentRow', 'type']}
+                        name='type'
                         label="车位类型"
                         valueEnum={{
                             0: '短期',
                             1: '长期',
                         }}
-                        value={currentRow?.type}
-                        onChange={handleCurrentRowChange('type')}
-
-                        placeholder=""
+                        rules={[{ required: true, message: '请选择车位类型' }]}
+                    />
+                    <ProFormSelect
+                        name='is_available'
+                        label="状态"
+                        valueEnum={{
+                            true: '可用',
+                            false: '不可用',
+                        }}
                         rules={[{ required: true, message: '请选择车位类型' }]}
                     />
                 </ProFormGroup>

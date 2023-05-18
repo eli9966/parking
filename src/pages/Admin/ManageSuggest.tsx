@@ -1,6 +1,6 @@
 
-import { deleteParkingSpace, querySuggestions } from '@/services/ant-design-pro/api';
-import { ActionType, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect } from '@ant-design/pro-components';
+import { addSuggestions, deleteParkingSpace, querySuggestions } from '@/services/ant-design-pro/api';
+import { ActionType, ModalForm, ProColumns, ProDescriptionsItemProps, ProFormGroup, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
 import {
     PageContainer,
     ProTable,
@@ -10,7 +10,7 @@ import { message } from 'antd';
 import React, { useRef, useState } from 'react';
 import { useAccess } from 'umi';
 
-const handleRemove = async (selectedRow: API.ParkingSpaceItem) => {
+const handleRemove = async (selectedRow: API.SuggestionItem) => {
     const hide = message.loading('正在删除');
     if (!selectedRow) return true;
     try {
@@ -24,11 +24,27 @@ const handleRemove = async (selectedRow: API.ParkingSpaceItem) => {
         return false;
     }
 };
-
+const handleAdd = async (fields: API.SuggestionItem) => {
+    const hide = message.loading('正在添加');
+    try {
+        await addSuggestions({ ...fields });
+        hide();
+        message.success('Added successfully');
+        return true;
+    } catch (error) {
+        hide();
+        message.error('Adding failed, please try again!');
+        return false;
+    }
+}
 const ManageSuggest: React.FC = () => {
+    const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
-    const [currentRow, setCurrentRow] = useState<API.ParkingSpaceItem>();
+    const [currentRow, setCurrentRow] = useState<API.SuggestionItem>();
     const access = useAccess();
+    const handleClick = () => {
+        handleModalOpen(true);
+    };
 
     const actionRef = useRef<ActionType>();
 
@@ -38,18 +54,12 @@ const ManageSuggest: React.FC = () => {
      * */
     const intl = useIntl();
 
-    const columns: ProColumns<API.ParkingSpaceItem>[] = [
+    const columns: ProColumns<API.SuggestionItem>[] = [
         {
             title: <FormattedMessage id="pages.admin.manage-suggest.table.suggestUser" />,
-            dataIndex: 'userName',
+            dataIndex: 'username',
         },
-        {
-            title: <FormattedMessage
-                id="pages.admin.manage-suggest.table.suggestTime"
-            />,
-            dataIndex: 'suggestTime',
-            valueType: 'textarea',
-        },
+
         {
             title: <FormattedMessage
                 id="pages.admin.manage-suggest.table.suggestContent"
@@ -58,20 +68,27 @@ const ManageSuggest: React.FC = () => {
             valueType: 'textarea',
         },
         {
+            title: <FormattedMessage
+                id="pages.admin.manage-suggest.table.suggestTime"
+            />,
+            dataIndex: 'createdAt',
+            valueType: 'textarea',
+        },
+        {
             title: <FormattedMessage id="pages.admin.manage-suggest.table.suggestReply" />,
-            dataIndex: 'reply',
+            dataIndex: 'replyContent',
             valueType: 'textarea',
             hideInForm: true,
         },
         {
             title: (<FormattedMessage id="pages.admin.manage-suggest.table.suggestReplyUser" />),
             search: false,
-            dataIndex: 'replyUser',
+            dataIndex: 'replyname',
         },
         {
             title: (<FormattedMessage id="pages.admin.manage-suggest.table.suggestReplyTime" />),
             search: false,
-            dataIndex: 'replyTime',
+            dataIndex: 'replyAt',
         },
         {
             title: <FormattedMessage id="pages.admin.manage-suggest.table.suggestStatus" defaultMessage="状态" />,
@@ -117,6 +134,7 @@ const ManageSuggest: React.FC = () => {
                         key="config"
                         onClick={() => {
                             setCurrentRow(record);
+                            handleModalOpen(true);
                         }}
                     >
                         <FormattedMessage id="pages.admin.manage-suggest.table.action.reply" />
@@ -147,6 +165,7 @@ const ManageSuggest: React.FC = () => {
     };
 
     return (
+        <>
         <PageContainer>
             <ProTable<API.ParkingSpaceItem, API.PageParams>
                 headerTitle={intl.formatMessage({
@@ -163,6 +182,37 @@ const ManageSuggest: React.FC = () => {
                 columns={columns}
             />
         </PageContainer>
+        <ModalForm<{
+            reply_content: string;
+        }>
+            title="我要反馈"
+            onOpenChange={handleModalOpen}
+
+            open={createModalOpen}
+            autoFocusFirstInput
+            modalProps={{
+                destroyOnClose: true,
+                onCancel: () => console.log('run'),
+            }}
+            submitTimeout={2000}
+            onFinish={
+                async (value) => {
+                    console.log(value);
+                    // setCurrentRow({ ...currentRow, reply_content: value.reply_content });
+                    const success = await handleAdd({ ...currentRow, replyContent: value.reply_content });
+                    if (success) {
+                        message.success('提交成功');
+                    }
+                    return true;
+                }
+            }
+        >
+            <ProFormTextArea
+                name="reply_content"
+                placeholder="请输入反馈内容"
+            />
+        </ModalForm>
+        </>
     );
 };
 

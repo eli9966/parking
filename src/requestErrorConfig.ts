@@ -89,6 +89,11 @@ export const errorConfig: RequestConfig = {
   requestInterceptors: [
     (config: RequestOptions) => {
       // 拦截请求配置，进行个性化处理。
+      const token = localStorage.getItem('token');
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
       const url = config?.url;
       return { ...config, url };
     },
@@ -102,8 +107,14 @@ export const errorConfig: RequestConfig = {
 
       console.log('responseInterceptors', res)
       if (res?.success === false) {
-        res.errorMessage ? message.error(res.errorMessage) : message.error('请求失败！');
+        res.message ? message.error(res.message) : message.error('请求失败！');
+        return response;
       }
+      if (res?.data?.token) {
+        localStorage.setItem('token', res.data.token);
+      }
+
+
       return response;
     },
   ],

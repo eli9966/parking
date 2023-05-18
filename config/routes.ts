@@ -44,6 +44,11 @@ export default [
     access: 'canUser',
   },
   {
+    path: "/admin/manage-vehicle",
+    name: "manage-vehicle",
+    component: "./Admin/VehiclRecords"
+  },
+  {
     path: '/admin',
     name: 'admin',
     icon: 'crown',

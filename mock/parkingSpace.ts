@@ -13,10 +13,9 @@ export default defineMock({
                 "location": '@character("ABCDEF")',
                 'number': '@integer(1, 10)',
                 'price': '@integer(3, 5)',
-                'desc': '@cword(5, 10)',
-                'status|1': [0, 1, 2, 3],
+                'is_available|1': [true, false],
                 'type|1': [0, 1],
-                'operateTime': '@datetime',
+                'user_id|': [7, 8, 9]
             }],
             "total": '@integer(20, 200)'
         })
@@ -32,6 +31,6 @@ export default defineMock({
     'POST /api/parkingSpace': (req: Request, res: Response) => {
         console.log(req.body);
         res.send({ status: 'ok', message: '添加成功！' })
-      },
+    },
 }
 )
