@@ -110,13 +110,15 @@ const Login: React.FC = () => {
         
         if(msg.message==""){
           const userInfo = fetchUserInfo();
-          const urlParams = new URL(window.location.href).searchParams;
-          // console.log(urlParams.get('redirect') )
-          // history.push(urlParams.get('redirect') || '/');
           if (userInfo?.access=="USER"){
-            history.push("/user/notice")
+            console.log("我要跳转了")
+
+            // history.push("/user/notice")
+            window.location.replace('/user/notice');
+
           }else{
-            history.push("/")
+            // history.push("/")
+            window.location.replace('/');
           }
           
           return;
