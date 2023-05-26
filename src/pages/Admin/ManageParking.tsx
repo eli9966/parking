@@ -8,7 +8,7 @@ import {
     ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useAccess, useIntl } from '@umijs/max';
-import { Button,message } from 'antd';
+import { Button, message } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 
@@ -248,7 +248,7 @@ const ManageParking: React.FC = () => {
                 }
             },
         },
-        
+
     ];
 
     const fetchData = async (params: API.PageParams) => {
@@ -289,7 +289,7 @@ const ManageParking: React.FC = () => {
             ],
         });
     };
-        
+
 
     useEffect(() => {
         // 执行刷新操作
@@ -308,18 +308,23 @@ const ManageParking: React.FC = () => {
                     labelWidth: 120,
                 }}
                 // pagination={{ ...pageInfo }}
-                toolBarRender={() => [
-                    <Button
-                        type="primary"
-                        key="primary"
-                        onClick={() => {
-                            handleModalOpen(true);
-                            setCurrentRow({})
-                        }}
-                    >
-                        <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
-                    </Button>,
-                ]}
+                toolBarRender={() => {
+                    if (access.canAdmin) {
+                        return [
+                            <Button
+                                type="primary"
+                                key="primary"
+                                onClick={() => {
+                                    handleModalOpen(true);
+                                    setCurrentRow({})
+                                }}
+                            >
+                                <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+                            </Button>,
+                        ]
+                    }
+                }
+                }
                 request={fetchData}
                 columns={columns}
                 rowSelection={{

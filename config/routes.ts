@@ -83,7 +83,7 @@ export default [
   },
   {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/admin/manage-user',
   },
   {
     path: '*',
